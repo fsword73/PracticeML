@@ -1,44 +1,26 @@
-import numpy as np
 import plaidml
-import plaidml.keras
-plaidml.keras.install_backend()
-import keras.backend as K
+import onnx_plaidml
+import onnx_plaidml.backend
+import onnx
+import numpy as np
+import onnx.numpy_helper
+import datetime  
 
+for i in ([1,2,4,8,16,32,64]):
+    dimensions = (i, 3, 224, 224)
+    batch32 = (np.random.rand(*dimensions) + 1.) / 52.
+    print (batch32.shape)
 
-class DepthWiseConv(plaidml.tile.Operation):
-    def __init__(self, x,y):
-        code = """function (I[N,C,H,W], K[M, C,R,S]) -> (O) {
-                      O[n,c*M + m,h,w: N,C*M,H-2,W-2] = +(I[n,c,h+i,w+j]*K[m,c,i,j]);
-                  }"""
-        idims =  x.shape.dims        
-        idims2 = y.shape.dims
-        outshape = plaidml.tile.Shape(x.shape.dtype, (idims[0], idims[1], idims[2]-2, idims[3]-2))
-        super(DepthWiseConv, self).__init__(code, [('I', x),('K', y) ], [('O', outshape)])
+    model = onnx.load('resnet50_model.onnx')
+    device = None
+    kwargs = {}
+    kwargs['device'] = device
+    rep = onnx_plaidml.backend.prepare(model, None)
+    output = rep.run([batch32])
+ 
+    oldtime=datetime.datetime.now()  
+    for j in range(0,10):
+        output = rep.run([batch32])
+    newtime=datetime.datetime.now()  
+    print (u'Elapsed：%s'%(newtime-oldtime) ) 
 
-class DepthWiseConv2(plaidml.tile.Operation):
-    def __init__(self, x,y):
-        code = """function (I[N,C,H,W], K[M, C,R,S]) -> (O) {
-                      O[n,c,h,w: N,C,H-2,W-2] = +(I[n,c,h+i,w+j]*K[m,c,i,j]);
-                  }"""
-        idims =  x.shape.dims        
-        idims2 = y.shape.dims
-        outshape = plaidml.tile.Shape(x.shape.dtype, (idims[0], idims[1], idims[2]-2, idims[3]-2))
-        super(DepthWiseConv2, self).__init__(code, [('I', x),('K', y) ], [('O', outshape)])
-        
-
-#Generate input data
-dimensions = (1, 3, 4, 4)
-dimensions2 = (1, 3, 3, 3)
-A = (np.random.rand(*dimensions) + 1.) / 52.
-B = (np.random.rand(*dimensions2) + 1.) / 52.
-#Process data using PlaidML
-i = K.variable(A)
-k = K.variable(B)
-
-result = DepthWiseConv.function(i,k)
-result2 = DepthWiseConv2.function(i,k)
-
-print(result.eval()) # Report results
-
-print("\n")
-print(result2.eval()) # Report results
