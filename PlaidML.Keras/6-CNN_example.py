@@ -1,18 +1,16 @@
-"""
-To know more or get code samples, please visit my website:
-https://morvanzhou.github.io/tutorials/
-Or search: 莫烦Python
-Thank you for supporting!
-"""
 
-# please note, all tutorial code are running under python3.5.
+
+# please note, all tutorial code are running under python3.6.
 # If you use the version like python2.7, please modify the code accordingly
 
 # 6 - CNN example
 
-# to try tensorflow, un-comment following two lines
-# import os
-# os.environ['KERAS_BACKEND']='tensorflow'
+
+
+# Install the plaidml backend
+import plaidml.keras
+plaidml.keras.install_backend()
+import plaidml.keras.backend
 
 import numpy as np
 np.random.seed(1337)  # for reproducibility
@@ -80,7 +78,7 @@ model.compile(optimizer=adam,
 
 print('Training ------------')
 # Another way to train the model
-model.fit(X_train, y_train, epochs=1, batch_size=64,)
+model.fit(X_train, y_train, epochs=10, batch_size=256,)
 
 print('\nTesting ------------')
 # Evaluate the model with the metrics we defined earlier

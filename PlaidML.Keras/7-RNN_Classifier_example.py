@@ -10,9 +10,10 @@ Thank you for supporting!
 
 # 8 - RNN Classifier example
 
-# to try tensorflow, un-comment following two lines
-# import os
-# os.environ['KERAS_BACKEND']='tensorflow'
+# Install the plaidml backend
+import plaidml.keras
+plaidml.keras.install_backend()
+import plaidml.keras.backend
 
 import numpy as np
 np.random.seed(1337)  # for reproducibility

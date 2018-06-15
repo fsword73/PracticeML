@@ -12,6 +12,12 @@ Thank you for supporting!
 
 import numpy as np
 np.random.seed(1337)  # for reproducibility
+
+# Install the plaidml backend
+import plaidml.keras
+plaidml.keras.install_backend()
+import plaidml.keras.backend
+
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.models import Sequential
@@ -30,7 +36,13 @@ y_test = np_utils.to_categorical(y_test, num_classes=10)
 
 # Another way to build your neural net
 model = Sequential([
-    Dense(32, input_dim=784),
+    Dense(128, input_dim=784),
+    Activation('relu'),
+    Dense(128),
+    Activation('relu'),
+    Dense(128),
+    Activation('relu'),
+    Dense(128),
     Activation('relu'),
     Dense(10),
     Activation('softmax'),
@@ -46,7 +58,11 @@ model.compile(optimizer=rmsprop,
 
 print('Training ------------')
 # Another way to train the model
-model.fit(X_train, y_train, epochs=2, batch_size=32)
+
+#Jian Yang: June 15, 2018, 
+#Big Batch__size has worse accuray, hard to congerence 
+the_history = model.fit(X_train, y_train, epochs=100, batch_size=4096)
+print(the_history.history)
 
 print('\nTesting ------------')
 # Evaluate the model with the metrics we defined earlier
